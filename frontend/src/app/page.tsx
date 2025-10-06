@@ -99,6 +99,9 @@ export default function Home() {
     attorneyName: '',
     clientName: '',
     caseNumber: '',
+    dateOfIncident: '',
+    includeSettlementAmount: false,
+    includeTotalDamages: false,
   });
 
   // PDF generation function
@@ -115,6 +118,9 @@ export default function Home() {
           lawFirm={lawFirmInfo.lawFirm || '[Law Firm Name]'}
           attorneyName={lawFirmInfo.attorneyName || '[Attorney Name]'}
           caseNumber={lawFirmInfo.caseNumber}
+          dateOfIncident={lawFirmInfo.dateOfIncident}
+          settlementAmount={lawFirmInfo.includeSettlementAmount ? settlement.totalSettlementAmount : undefined}
+          totalDamages={lawFirmInfo.includeTotalDamages ? calculateTotalDamages() : undefined}
         />
       ).toBlob();
 
@@ -160,7 +166,7 @@ export default function Home() {
 
   const handleCalculate = async () => {
     try {
-      const response = await axios.post('http://localhost:3002/settlements/calculate', settlement);
+      const response = await axios.post('http://localhost:3001/settlements/calculate', settlement);
       setResults(response.data);
     } catch (error) {
       console.error(error);
@@ -301,6 +307,38 @@ export default function Home() {
                 placeholder="Case #"
               />
             </div>
+            <div>
+              <label className="block text-xs font-medium text-black mb-1">Date of Incident</label>
+              <input
+                type="date"
+                value={lawFirmInfo.dateOfIncident}
+                onChange={(e) => setLawFirmInfo({ ...lawFirmInfo, dateOfIncident: e.target.value })}
+                className="block w-full border-gray-300 rounded-md shadow-sm text-black text-sm p-2"
+                aria-label="Date of incident"
+              />
+            </div>
+          </div>
+          <div className="mt-3 space-y-2">
+            <label className="flex items-center text-xs text-black">
+              <input
+                type="checkbox"
+                checked={lawFirmInfo.includeSettlementAmount}
+                onChange={(e) => setLawFirmInfo({ ...lawFirmInfo, includeSettlementAmount: e.target.checked })}
+                className="mr-2 h-4 w-4"
+                title="Include total settlement amount in PDF letter"
+              />
+              Include Total Settlement Amount in PDF
+            </label>
+            <label className="flex items-center text-xs text-black">
+              <input
+                type="checkbox"
+                checked={lawFirmInfo.includeTotalDamages}
+                onChange={(e) => setLawFirmInfo({ ...lawFirmInfo, includeTotalDamages: e.target.checked })}
+                className="mr-2 h-4 w-4"
+                title="Include total damages amount in PDF letter"
+              />
+              Include Total Damages Amount in PDF
+            </label>
           </div>
         </div>
 
@@ -367,7 +405,6 @@ export default function Home() {
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-3">
           <h3 className="text-sm font-semibold mb-2 text-black">Pro Rata Pool Summary</h3>
           <div className="text-xs text-gray-700">
-            <p className="mb-2">Use the &quot;Include in Pro Rata Pool&quot; checkboxes to select which items are included in the total damages calculation.</p>
             <div className="bg-white p-2 rounded text-xs">
               <div><strong>Total Damages Pool:</strong> ${calculateTotalDamages().toFixed(2)}</div>
               <div><strong>Pro Rata Pool (1/3):</strong> ${(settlement.totalSettlementAmount / 3).toFixed(2)}</div>

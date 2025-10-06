@@ -75,6 +75,9 @@ interface ReductionLetterProps {
   lawFirm?: string;
   attorneyName?: string;
   caseNumber?: string;
+  dateOfIncident?: string;
+  settlementAmount?: number;
+  totalDamages?: number;
 }
 
 const ReductionLetter: React.FC<ReductionLetterProps> = ({
@@ -87,6 +90,9 @@ const ReductionLetter: React.FC<ReductionLetterProps> = ({
   lawFirm = '[Law Firm Name]',
   attorneyName = '[Attorney Name]',
   caseNumber,
+  dateOfIncident,
+  settlementAmount,
+  totalDamages,
 }) => {
   const today = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -120,6 +126,7 @@ const ReductionLetter: React.FC<ReductionLetterProps> = ({
         <View style={styles.subject}>
           <Text>RE: Medical Bill Reduction Request - {clientName}</Text>
           {caseNumber && <Text>Case Number: {caseNumber}</Text>}
+          {dateOfIncident && <Text>Date of Incident: {new Date(dateOfIncident).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</Text>}
         </View>
 
         {/* Salutation */}
@@ -131,8 +138,7 @@ const ReductionLetter: React.FC<ReductionLetterProps> = ({
         <View style={styles.body}>
           <Text>
             I am writing on behalf of my client, {clientName}, regarding medical services provided by your
-            facility. My client was injured in an accident and has retained our firm to pursue compensation
-            for their injuries.
+            facility.{dateOfIncident ? ` My client was injured in an incident on ${new Date(dateOfIncident).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} and` : ' My client was injured in an accident and'} received treatment in your office.
           </Text>
         </View>
 
@@ -170,12 +176,22 @@ const ReductionLetter: React.FC<ReductionLetterProps> = ({
           </View>
         </View>
 
+        {/* Optional Settlement and Damages Information */}
+        {(settlementAmount !== undefined || totalDamages !== undefined) && (
+          <View style={[styles.body, { marginTop: 10, padding: 10, backgroundColor: '#f9fafb' }]}>
+            {settlementAmount !== undefined && (
+              <Text style={{ marginBottom: 5 }}>Total Settlement Amount: ${settlementAmount.toFixed(2)}</Text>
+            )}
+            {totalDamages !== undefined && (
+              <Text>Total Damages: ${totalDamages.toFixed(2)}</Text>
+            )}
+          </View>
+        )}
+
         {/* Body paragraph 3 */}
         <View style={styles.body}>
           <Text>
-            We understand that this represents a significant reduction from the original balance. However,
-            accepting this reduced amount ensures prompt payment from the settlement proceeds, whereas
-            pursuing the full amount may result in prolonged collection efforts with uncertain outcomes.
+            We understand that this represents a significant reduction from the original balance.
           </Text>
         </View>
 
