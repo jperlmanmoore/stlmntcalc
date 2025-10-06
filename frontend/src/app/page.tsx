@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import axios from 'axios';
+import { pdf } from '@react-pdf/renderer';
+import ReductionLetter from '../components/ReductionLetter';
 
 interface CalculationResult {
   grossSettlement: number;
@@ -90,6 +92,45 @@ export default function Home() {
   });
 
   const [results, setResults] = useState<CalculationResult | null>(null);
+  
+  // Law firm information for PDF letters
+  const [lawFirmInfo, setLawFirmInfo] = useState({
+    lawFirm: '',
+    attorneyName: '',
+    clientName: '',
+    caseNumber: '',
+  });
+
+  // PDF generation function
+  const generatePDF = async (provider: { name: string; billedAmount: number; reduction: number; finalAmount: number; email?: string }) => {
+    try {
+      const blob = await pdf(
+        <ReductionLetter
+          providerName={provider.name}
+          providerEmail={provider.email}
+          originalAmount={provider.billedAmount}
+          reductionAmount={provider.reduction}
+          finalAmount={provider.finalAmount}
+          clientName={lawFirmInfo.clientName || '[Client Name]'}
+          lawFirm={lawFirmInfo.lawFirm || '[Law Firm Name]'}
+          attorneyName={lawFirmInfo.attorneyName || '[Attorney Name]'}
+          caseNumber={lawFirmInfo.caseNumber}
+        />
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `reduction-letter-${provider.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
 
   // Helper functions for calculations
   const calculatePercentageReduction = (amount: number, percentage: number) => amount * (percentage / 100);
@@ -119,7 +160,7 @@ export default function Home() {
 
   const handleCalculate = async () => {
     try {
-      const response = await axios.post('http://localhost:3001/settlements/calculate', settlement);
+      const response = await axios.post('http://localhost:3002/settlements/calculate', settlement);
       setResults(response.data);
     } catch (error) {
       console.error(error);
@@ -215,6 +256,53 @@ export default function Home() {
           {/* LEFT COLUMN - INPUTS */}
           <div className="bg-white shadow-lg rounded-lg p-6 h-fit max-h-screen overflow-y-auto sticky top-4">
             <h2 className="text-xl font-semibold mb-4 text-black border-b pb-2">Input Information</h2>
+
+        {/* Law Firm Information for PDF Letters */}
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h3 className="text-sm font-semibold text-black mb-3">Law Firm Information (for PDF letters)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-black mb-1">Law Firm Name</label>
+              <input
+                type="text"
+                value={lawFirmInfo.lawFirm}
+                onChange={(e) => setLawFirmInfo({ ...lawFirmInfo, lawFirm: e.target.value })}
+                className="block w-full border-gray-300 rounded-md shadow-sm text-black text-sm p-2"
+                placeholder="Your Law Firm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-black mb-1">Attorney Name</label>
+              <input
+                type="text"
+                value={lawFirmInfo.attorneyName}
+                onChange={(e) => setLawFirmInfo({ ...lawFirmInfo, attorneyName: e.target.value })}
+                className="block w-full border-gray-300 rounded-md shadow-sm text-black text-sm p-2"
+                placeholder="Attorney Name"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-black mb-1">Client Name</label>
+              <input
+                type="text"
+                value={lawFirmInfo.clientName}
+                onChange={(e) => setLawFirmInfo({ ...lawFirmInfo, clientName: e.target.value })}
+                className="block w-full border-gray-300 rounded-md shadow-sm text-black text-sm p-2"
+                placeholder="Client Name"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-black mb-1">Case Number (optional)</label>
+              <input
+                type="text"
+                value={lawFirmInfo.caseNumber}
+                onChange={(e) => setLawFirmInfo({ ...lawFirmInfo, caseNumber: e.target.value })}
+                className="block w-full border-gray-300 rounded-md shadow-sm text-black text-sm p-2"
+                placeholder="Case #"
+              />
+            </div>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -644,19 +732,42 @@ export default function Home() {
                     <thead className="bg-gray-200">
                       <tr>
                         <th className="p-2 text-left text-black">Provider</th>
+                        <th className="p-2 text-right text-black">Original</th>
                         <th className="p-2 text-right text-black">Reduction</th>
+                        <th className="p-2 text-right text-black">Final</th>
+                        <th className="p-2 text-center text-black">PDF</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {results.reductions.medical.perProvider.map((provider, index) => (
-                        <tr key={index} className="border-t border-gray-200">
-                          <td className="p-2 text-black">{provider.name || `Provider ${index + 1}`}</td>
-                          <td className="p-2 text-right text-black">${provider.reduction.toFixed(2)}</td>
-                        </tr>
-                      ))}
+                      {results.reductions.medical.perProvider.map((provider, index) => {
+                        // Find the corresponding provider from input to get email
+                        const inputProvider = settlement.medicalProviders[index];
+                        const providerWithEmail = { ...provider, email: inputProvider?.email };
+                        
+                        return (
+                          <tr key={index} className="border-t border-gray-200">
+                            <td className="p-2 text-black">{provider.name || `Provider ${index + 1}`}</td>
+                            <td className="p-2 text-right text-black">${provider.billedAmount.toFixed(2)}</td>
+                            <td className="p-2 text-right text-black">${provider.reduction.toFixed(2)}</td>
+                            <td className="p-2 text-right text-black">${provider.finalAmount.toFixed(2)}</td>
+                            <td className="p-2 text-center">
+                              <button
+                                onClick={() => generatePDF(providerWithEmail)}
+                                className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs transition-colors"
+                                title="Export PDF Letter"
+                              >
+                                📄 Export
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                       <tr className="border-t-2 border-gray-300 bg-gray-50">
                         <td className="p-2 font-semibold text-black">Total:</td>
+                        <td className="p-2 text-right font-semibold text-black"></td>
                         <td className="p-2 text-right font-semibold text-black">${results.reductions.medical.total.toFixed(2)}</td>
+                        <td className="p-2 text-right font-semibold text-black"></td>
+                        <td className="p-2"></td>
                       </tr>
                     </tbody>
                   </table>
