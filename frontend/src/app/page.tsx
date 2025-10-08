@@ -92,6 +92,9 @@ export default function Home() {
   });
 
   const [results, setResults] = useState<CalculationResult | null>(null);
+  const [communicationStatus, setCommunicationStatus] = useState<{[key: string]: string}>({});
+  const [faxProvider, setFaxProvider] = useState<'twilio' | '8x8' | 'ringcentral' | 'efax' | 'hellofax' | 'faxburner'>('twilio');
+  const [emailProvider, setEmailProvider] = useState<'sendgrid' | 'smtp' | 'mailgun' | 'gmail' | 'outlook'>('smtp');
   
   // Law firm information for PDF letters
   const [lawFirmInfo, setLawFirmInfo] = useState({
@@ -135,6 +138,54 @@ export default function Home() {
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
+  // Communication functions
+  const sendEmail = async (provider: { name: string; billedAmount: number; reduction: number; finalAmount: number; email?: string }, index: number) => {
+    if (!provider.email) {
+      alert('No email address provided for this provider.');
+      return;
+    }
+    try {
+      const subject = `Settlement Reduction Request for ${provider.name}`;
+      const html = `
+        <p>Dear ${provider.name},</p>
+        <p>We are requesting a reduction of $${provider.reduction.toFixed(2)} on the amount of $${provider.billedAmount.toFixed(2)}.</p>
+        <p>Please confirm.</p>
+        <p>Best regards,<br>${lawFirmInfo.lawFirm || 'Law Firm'}</p>
+      `;
+      await axios.post('http://localhost:3001/communication/send-email', {
+        to: provider.email,
+        subject,
+        html,
+        providerId: `medical-${index}`,
+        provider: emailProvider,
+      });
+      setCommunicationStatus({ ...communicationStatus, [`email-${index}`]: 'sent' });
+      alert(`Email sent successfully via ${emailProvider === 'smtp' ? 'SMTP' : emailProvider.charAt(0).toUpperCase() + emailProvider.slice(1)}!`);
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert('Failed to send email. Please try again.');
+    }
+  };
+
+  const sendFax = async (provider: { name: string; billedAmount: number; reduction: number; finalAmount: number; email?: string }, index: number) => {
+    // For fax, we need a PDF URL. For now, generate and upload to a temp location or use a placeholder.
+    // TODO: Generate PDF and get URL
+    const pdfUrl = 'https://example.com/sample.pdf'; // Placeholder
+    try {
+      await axios.post('http://localhost:3001/communication/send-fax', {
+        to: '1234567890', // Placeholder fax number
+        pdfUrl,
+        providerId: `medical-${index}`,
+        provider: faxProvider,
+      });
+      setCommunicationStatus({ ...communicationStatus, [`fax-${index}`]: 'sent' });
+      alert(`Fax sent successfully via ${faxProvider === 'twilio' ? 'Twilio' : '8x8'}!`);
+    } catch (error) {
+      console.error('Error sending fax:', error);
+      alert('Failed to send fax. Please try again.');
     }
   };
 
@@ -317,6 +368,37 @@ export default function Home() {
                 aria-label="Date of incident"
               />
             </div>
+            <div>
+              <label className="block text-xs font-medium text-black mb-1">Fax Provider</label>
+              <select
+                value={faxProvider}
+                onChange={(e) => setFaxProvider(e.target.value as 'twilio' | '8x8' | 'ringcentral' | 'efax' | 'hellofax' | 'faxburner')}
+                className="block w-full border-gray-300 rounded-md shadow-sm text-black text-sm p-2"
+                title="Select fax provider"
+              >
+                <option value="twilio">Twilio</option>
+                <option value="8x8">8x8</option>
+                <option value="ringcentral">RingCentral</option>
+                <option value="efax">eFax</option>
+                <option value="hellofax">HelloFax</option>
+                <option value="faxburner">FaxBurner</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-black mb-1">Email Provider</label>
+              <select
+                value={emailProvider}
+                onChange={(e) => setEmailProvider(e.target.value as 'sendgrid' | 'smtp' | 'mailgun' | 'gmail' | 'outlook')}
+                className="block w-full border-gray-300 rounded-md shadow-sm text-black text-sm p-2"
+                title="Select email provider"
+              >
+                <option value="smtp">SMTP (Gmail/Outlook/Yahoo)</option>
+                <option value="sendgrid">SendGrid</option>
+                <option value="mailgun">Mailgun</option>
+                <option value="gmail">Gmail API</option>
+                <option value="outlook">Outlook API</option>
+              </select>
+            </div>
           </div>
           <div className="mt-3 space-y-2">
             <label className="flex items-center text-xs text-black">
@@ -480,8 +562,8 @@ export default function Home() {
                         <span className="text-gray-500 text-xs">—</span>
                       )}
                     </td>
-                    <td className="border border-gray-300 p-1 text-black text-xs">${reductionAmount.toFixed(0)}</td>
-                    <td className="border border-gray-300 p-1 text-black text-xs">${final.toFixed(0)}</td>
+                    <td className="border border-gray-300 p-1 text-black text-xs">${reductionAmount.toFixed(2)}</td>
+                    <td className="border border-gray-300 p-1 text-black text-xs">${final.toFixed(2)}</td>
                     <td className="border border-gray-300 p-1 text-center">
                       <input
                         type="checkbox"
@@ -571,8 +653,8 @@ export default function Home() {
                         <span className="text-gray-500 text-xs">—</span>
                       )}
                     </td>
-                    <td className="border border-gray-300 p-1 text-black text-xs">${reductionAmount.toFixed(0)}</td>
-                    <td className="border border-gray-300 p-1 text-black text-xs">${final.toFixed(0)}</td>
+                    <td className="border border-gray-300 p-1 text-black text-xs">${reductionAmount.toFixed(2)}</td>
+                    <td className="border border-gray-300 p-1 text-black text-xs">${final.toFixed(2)}</td>
                     <td className="border border-gray-300 p-1 text-center">
                       <input
                         type="checkbox"
@@ -674,8 +756,8 @@ export default function Home() {
                         <span className="text-gray-500 text-xs">—</span>
                       )}
                     </td>
-                    <td className="border border-gray-300 p-1 text-black text-xs">${reductionAmount.toFixed(0)}</td>
-                    <td className="border border-gray-300 p-1 text-black text-xs">${final.toFixed(0)}</td>
+                    <td className="border border-gray-300 p-1 text-black text-xs">${reductionAmount.toFixed(2)}</td>
+                    <td className="border border-gray-300 p-1 text-black text-xs">${final.toFixed(2)}</td>
                     <td className="border border-gray-300 p-1 text-center">
                       <input
                         type="checkbox"
@@ -773,6 +855,8 @@ export default function Home() {
                         <th className="p-2 text-right text-black">Reduction</th>
                         <th className="p-2 text-right text-black">Final</th>
                         <th className="p-2 text-center text-black">PDF</th>
+                        <th className="p-2 text-center text-black">Email</th>
+                        <th className="p-2 text-center text-black">Fax</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -796,6 +880,25 @@ export default function Home() {
                                 📄 Export
                               </button>
                             </td>
+                            <td className="p-2 text-center">
+                              <button
+                                onClick={() => sendEmail(providerWithEmail, index)}
+                                className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs transition-colors"
+                                title="Send Email"
+                                disabled={!providerWithEmail.email}
+                              >
+                                ✉️ Send
+                              </button>
+                            </td>
+                            <td className="p-2 text-center">
+                              <button
+                                onClick={() => sendFax(providerWithEmail, index)}
+                                className="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded text-xs transition-colors"
+                                title="Send Fax"
+                              >
+                                📠 Send
+                              </button>
+                            </td>
                           </tr>
                         );
                       })}
@@ -804,6 +907,8 @@ export default function Home() {
                         <td className="p-2 text-right font-semibold text-black"></td>
                         <td className="p-2 text-right font-semibold text-black">${results.reductions.medical.total.toFixed(2)}</td>
                         <td className="p-2 text-right font-semibold text-black"></td>
+                        <td className="p-2"></td>
+                        <td className="p-2"></td>
                         <td className="p-2"></td>
                       </tr>
                     </tbody>
