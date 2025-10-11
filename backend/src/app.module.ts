@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SettlementModule } from './settlement/settlement.module';
+import { CommunicationModule } from './communication/communication.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { SettlementModule } from './settlement/settlement.module';
       process.env.MONGODB_URI || 'mongodb://localhost:27017/settlementcalc',
     ),
     SettlementModule,
+    CommunicationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

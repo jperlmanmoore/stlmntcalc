@@ -6,10 +6,10 @@ export type SettlementDocument = Settlement & Document;
 @Schema()
 export class Settlement {
   @Prop({ required: true })
-  totalSettlementAmount: number;
+  totalSettlementAmount!: number;
 
   @Prop({ required: true })
-  caseExpenses: number;
+  caseExpenses!: number;
 
   @Prop({
     type: {
@@ -19,7 +19,7 @@ export class Settlement {
     },
     amount: { type: Number, required: true },
   })
-  attorneyFees: {
+  attorneyFees!: {
     type: 'specific' | 'percentage';
     amount: number;
   };
@@ -34,7 +34,7 @@ export class Settlement {
       includeInProrataPool: { type: Boolean, default: true },
     },
   ])
-  medicalProviders: {
+  medicalProviders!: {
     name: string;
     billedAmount: number;
     email: string;
@@ -53,7 +53,7 @@ export class Settlement {
       includeInProrataPool: { type: Boolean, default: true },
     },
   ])
-  preSettlementLoans: {
+  preSettlementLoans!: {
     provider: string;
     amount: number;
     email: string;
@@ -73,7 +73,7 @@ export class Settlement {
       includeInProrataPool: { type: Boolean, default: true },
     },
   ])
-  liens: {
+  liens!: {
     provider: string;
     amount: number;
     type: 'health' | 'other';
@@ -84,7 +84,7 @@ export class Settlement {
   }[];
 
   @Prop({ required: true })
-  medicalPayment: number;
+  medicalPayment!: number;
 
   @Prop({
     type: {
@@ -102,7 +102,7 @@ export class Settlement {
       },
     },
   })
-  reductions: {
+  reductions!: {
     medical: { type: 'percentage' | 'prorata'; value: number };
     loans: { type: 'percentage' | 'prorata'; value: number };
     liens: { type: 'percentage' | 'prorata'; value: number };
@@ -112,7 +112,7 @@ export class Settlement {
     type: Object,
     default: { includeLoansInPool: false, includeLiensInPool: false },
   })
-  prorataConfig: {
+  prorataConfig!: {
     includeLoansInPool: boolean;
     includeLiensInPool: boolean;
   };
