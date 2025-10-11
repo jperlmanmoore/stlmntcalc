@@ -73,7 +73,8 @@ async function testAIContentGeneration() {
     console.log('🎉 AI content generation test completed successfully!');
 
   } catch (error) {
-    console.error('❌ AI content generation test failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ AI content generation test failed:', message);
     console.log('\n💡 Falling back to template content...\n');
 
     // Show fallback content

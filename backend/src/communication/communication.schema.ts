@@ -6,25 +6,25 @@ export type CommunicationDocument = Communication & Document;
 @Schema()
 export class Communication {
   @Prop({ required: true })
-  providerId: string;
+  providerId!: string;
 
   @Prop({ required: true, enum: ['email', 'fax'] })
-  type: string;
+  type!: string;
 
   @Prop({ required: true })
-  recipient: string;
+  recipient!: string;
 
   @Prop({ required: true })
   subject?: string; // For email
 
   @Prop({ required: true })
-  content: string; // HTML for email, PDF URL for fax
+  content!: string; // HTML for email, PDF URL for fax
 
   @Prop({ default: 'sent' })
-  status: string; // sent, delivered, failed, responded
+  status!: string; // sent, delivered, failed, responded
 
   @Prop()
-  sentAt: Date;
+  sentAt!: Date;
 
   @Prop()
   responseAt?: Date;

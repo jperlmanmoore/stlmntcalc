@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as sendgrid from '@sendgrid/mail';
+import sgMail from '@sendgrid/mail';
 import * as nodemailer from 'nodemailer';
 import Mailgun from 'mailgun.js';
 import FormData from 'form-data';
@@ -16,7 +16,7 @@ import { PdfService, SettlementData } from './pdf.service';
 @Injectable()
 export class CommunicationService {
   private twilioClient = twilio;
-  private openai: OpenAI;
+  private openai?: OpenAI;
 
   constructor(
     @InjectModel(Communication.name)
@@ -25,7 +25,7 @@ export class CommunicationService {
   ) {
     const apiKey = process.env.SENDGRID_API_KEY;
     if (apiKey) {
-      sendgrid.setApiKey(apiKey);
+      sgMail.setApiKey(apiKey);
     }
 
     // Initialize OpenAI client
@@ -77,7 +77,7 @@ export class CommunicationService {
       html,
     };
 
-    await sendgrid.send(msg);
+    await sgMail.send(msg);
 
     // Save to database
     const communication = new this.communicationModel({
@@ -493,8 +493,8 @@ export class CommunicationService {
       return communication;
     } catch (error) {
       console.error('8x8 Fax API error:', error);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      throw new Error(`Failed to send fax via 8x8: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to send fax via 8x8: ${message}`);
     }
   }
 
@@ -573,8 +573,8 @@ export class CommunicationService {
       return communication;
     } catch (error) {
       console.error('RingCentral Fax API error:', error);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      throw new Error(`Failed to send fax via RingCentral: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to send fax via RingCentral: ${message}`);
     }
   }
 
@@ -630,8 +630,8 @@ export class CommunicationService {
       return communication;
     } catch (error) {
       console.error('eFax API error:', error);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      throw new Error(`Failed to send fax via eFax: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to send fax via eFax: ${message}`);
     }
   }
 
@@ -687,8 +687,8 @@ export class CommunicationService {
       return communication;
     } catch (error) {
       console.error('HelloFax API error:', error);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      throw new Error(`Failed to send fax via HelloFax: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to send fax via HelloFax: ${message}`);
     }
   }
 
@@ -747,8 +747,8 @@ export class CommunicationService {
       return communication;
     } catch (error) {
       console.error('FaxBurner API error:', error);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      throw new Error(`Failed to send fax via FaxBurner: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to send fax via FaxBurner: ${message}`);
     }
   }
 

@@ -57,14 +57,17 @@ async function testGmailAPIConnection() {
     console.log(`📬 Threads Total: ${(profile.data as any).threadsTotal}`);
 
   } catch (error) {
-    console.error('❌ Gmail API connection failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ Gmail API connection failed:', message);
 
-    if (error.message.includes('invalid_client')) {
-      console.log('💡 Check your Client ID and Client Secret');
-    } else if (error.message.includes('invalid_grant')) {
-      console.log('💡 Refresh token is invalid or expired. Get a new one.');
-    } else if (error.message.includes('access_denied')) {
-      console.log('💡 Check your OAuth consent screen and scopes');
+    if (error instanceof Error) {
+      if (error.message.includes('invalid_client')) {
+        console.log('💡 Check your Client ID and Client Secret');
+      } else if (error.message.includes('invalid_grant')) {
+        console.log('💡 Refresh token is invalid or expired. Get a new one.');
+      } else if (error.message.includes('access_denied')) {
+        console.log('💡 Check your OAuth consent screen and scopes');
+      }
     }
   }
 }

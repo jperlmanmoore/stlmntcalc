@@ -41,14 +41,17 @@ async function testOutlookAPIConnection() {
     console.log(`📁 Mail folders found: ${(mailFolders as any).value?.length || 0}`);
 
   } catch (error) {
-    console.error('❌ Outlook API connection failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ Outlook API connection failed:', message);
 
-    if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-      console.log('💡 Access token is invalid or expired. Get a new one.');
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
-      console.log('💡 Check your app permissions in Azure AD');
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
-      console.log('💡 Check your tenant ID and client configuration');
+    if (error instanceof Error) {
+      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        console.log('💡 Access token is invalid or expired. Get a new one.');
+      } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+        console.log('💡 Check your app permissions in Azure AD');
+      } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+        console.log('💡 Check your tenant ID and client configuration');
+      }
     }
   }
 }

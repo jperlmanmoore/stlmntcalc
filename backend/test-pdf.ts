@@ -49,7 +49,8 @@ async function testPdfGeneration() {
     console.log(`🔗 PDF URL: ${pdfUrl}`);
 
   } catch (error) {
-    console.error('❌ PDF generation failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ PDF generation failed:', message);
   }
 }
 

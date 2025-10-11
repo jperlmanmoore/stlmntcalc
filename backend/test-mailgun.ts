@@ -37,12 +37,15 @@ async function testMailgunConnection() {
     }
 
   } catch (error) {
-    console.error('❌ Mailgun API connection failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ Mailgun API connection failed:', message);
 
-    if (error.message.includes('Forbidden')) {
-      console.log('💡 Check your API key permissions and domain ownership');
-    } else if (error.message.includes('Not Found')) {
-      console.log('💡 Domain not found. Make sure the domain is added to your Mailgun account');
+    if (error instanceof Error) {
+      if (error.message.includes('Forbidden')) {
+        console.log('💡 Check your API key permissions and domain ownership');
+      } else if (error.message.includes('Not Found')) {
+        console.log('💡 Domain not found. Make sure the domain is added to your Mailgun account');
+      }
     }
   }
 }

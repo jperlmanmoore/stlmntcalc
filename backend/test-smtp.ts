@@ -61,9 +61,10 @@ async function testSMTPConnection() {
     console.log(`🔧 Provider: ${emailDomain} SMTP`);
 
   } catch (error) {
-    console.error('❌ SMTP connection failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ SMTP connection failed:', message);
 
-    if (error.message.includes('Authentication failed')) {
+    if (error instanceof Error && error.message.includes('Authentication failed')) {
       console.log('💡 For Gmail: Make sure to use an App Password instead of your regular password');
       console.log('   1. Enable 2FA on your Google account');
       console.log('   2. Generate an App Password: https://myaccount.google.com/apppasswords');

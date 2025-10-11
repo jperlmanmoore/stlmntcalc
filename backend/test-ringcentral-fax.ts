@@ -52,12 +52,17 @@ async function testRingCentralFaxConnection() {
     console.log('💡 RingCentral fax API integration configured');
 
   } catch (error) {
-    console.error('❌ RingCentral connection failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ RingCentral connection failed:', message);
 
-    if (error.response?.status === 400) {
-      console.log('💡 Check your client credentials and user details');
-    } else if (error.response?.status === 401) {
-      console.log('💡 Authentication failed - check username/password');
+    // Check if it's an axios error with response
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError.response?.status === 400) {
+        console.log('💡 Check your client credentials and user details');
+      } else if (axiosError.response?.status === 401) {
+        console.log('💡 Authentication failed - check username/password');
+      }
     }
   }
 }

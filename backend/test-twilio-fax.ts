@@ -36,12 +36,15 @@ async function testTwilioFaxConnection() {
     console.log('💡 To test actual fax sending, provide a valid PDF URL and fax number');
 
   } catch (error) {
-    console.error('❌ Twilio connection failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ Twilio connection failed:', message);
 
-    if (error.message.includes('Authentication failed')) {
-      console.log('💡 Check your Account SID and Auth Token');
-    } else if (error.message.includes('403')) {
-      console.log('💡 Your account may not have fax capabilities enabled');
+    if (error instanceof Error) {
+      if (error.message.includes('Authentication failed')) {
+        console.log('💡 Check your Account SID and Auth Token');
+      } else if (error.message.includes('403')) {
+        console.log('💡 Your account may not have fax capabilities enabled');
+      }
     }
   }
 }

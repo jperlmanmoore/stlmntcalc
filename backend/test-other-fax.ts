@@ -27,7 +27,8 @@ async function testEFaxConnection() {
     console.log('✅ eFax connection successful!');
     return true;
   } catch (error) {
-    console.error('❌ eFax connection failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ eFax connection failed:', message);
     return false;
   }
 }
@@ -55,7 +56,8 @@ async function testHelloFaxConnection() {
     console.log('✅ HelloFax connection successful!');
     return true;
   } catch (error) {
-    console.error('❌ HelloFax connection failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ HelloFax connection failed:', message);
     return false;
   }
 }
@@ -86,7 +88,8 @@ async function testFaxBurnerConnection() {
     console.log('✅ FaxBurner connection successful!');
     return true;
   } catch (error) {
-    console.error('❌ FaxBurner connection failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ FaxBurner connection failed:', message);
     return false;
   }
 }

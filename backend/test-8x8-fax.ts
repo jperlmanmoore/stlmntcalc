@@ -7,9 +7,15 @@ dotenv.config();
 async function testEightXEightFaxConnection() {
   console.log('Testing 8x8 Fax connection...');
 
-  if (!process.env.EIGHT_X_EIGHT_USERNAME || !process.env.EIGHT_X_EIGHT_PASSWORD || !process.env.EIGHT_X_EIGHT_FAX_NUMBER) {
+  if (
+    !process.env.EIGHT_X_EIGHT_USERNAME ||
+    !process.env.EIGHT_X_EIGHT_PASSWORD ||
+    !process.env.EIGHT_X_EIGHT_FAX_NUMBER
+  ) {
     console.error('❌ 8x8 credentials not configured');
-    console.log('Required: EIGHT_X_EIGHT_USERNAME, EIGHT_X_EIGHT_PASSWORD, EIGHT_X_EIGHT_FAX_NUMBER');
+    console.log(
+      'Required: EIGHT_X_EIGHT_USERNAME, EIGHT_X_EIGHT_PASSWORD, EIGHT_X_EIGHT_FAX_NUMBER',
+    );
     console.log('💡 To get these:');
     console.log('   1. Sign up at https://www.8x8.com/');
     console.log('   2. Get your API credentials from the developer portal');
@@ -20,7 +26,8 @@ async function testEightXEightFaxConnection() {
   try {
     console.log('🔧 Testing 8x8 authentication...');
 
-    const baseUrl = process.env.EIGHT_X_EIGHT_API_BASE_URL || 'https://api.8x8.com';
+    const baseUrl =
+      process.env.EIGHT_X_EIGHT_API_BASE_URL || 'https://api.8x8.com';
 
     // Test authentication
     const authResponse = await axios.post(`${baseUrl}/oauth/token`, {
@@ -35,14 +42,18 @@ async function testEightXEightFaxConnection() {
 
     // Note: We can't test actual fax sending without proper API endpoints
     console.log('💡 8x8 fax API integration configured');
-
   } catch (error) {
-    console.error('❌ 8x8 connection failed:', error.message);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ 8x8 connection failed:', message);
 
-    if (error.response?.status === 401) {
-      console.log('💡 Check your username and password');
-    } else if (error.response?.status === 404) {
-      console.log('💡 Check your API base URL');
+    // Check if it's an axios error with response
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError.response?.status === 401) {
+        console.log('💡 Check your username and password');
+      } else if (axiosError.response?.status === 404) {
+        console.log('💡 Check your API base URL');
+      }
     }
   }
 }
